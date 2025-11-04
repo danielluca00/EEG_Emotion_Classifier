@@ -1,0 +1,51 @@
+import numpy as np
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, LearningRateScheduler
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.models import load_model
+from utils.data_loader import load_data
+from utils.plot_utils import plot_training_history, plot_confusion
+from models.dnn_model import create_dnn
+from sklearn.metrics import classification_report
+
+def main():
+    # === Load Data ===
+    X_train, X_val, X_test, y_train, y_val, y_test = load_data("data/emotions.csv")
+
+    # === Create Model ===
+    model = create_dnn(input_dim=X_train.shape[1], num_classes=y_train.shape[1])
+    model.summary()
+
+    # === Compile ===
+    adam = Adam(learning_rate=0.001)
+    model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy'])
+
+    # === Callbacks ===
+    es = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+    mc = ModelCheckpoint('checkpoints/best_dnn_model.h5', monitor='val_accuracy', save_best_only=True)
+    lr_schedule = LearningRateScheduler(lambda epoch: 0.001 * np.exp(-epoch / 10.))
+
+    # === Train ===
+    history = model.fit(
+        X_train, y_train,
+        validation_data=(X_val, y_val),
+        epochs=50,
+        batch_size=32,
+        callbacks=[es, mc, lr_schedule],
+        verbose=1
+    )
+
+    plot_training_history(history)
+
+    # === Evaluate ===
+    best_model = load_model('checkpoints/best_dnn_model.h5')
+    acc = best_model.evaluate(X_test, y_test, verbose=0)[1]
+    print(f"Test Accuracy: {acc * 100:.2f}%")
+
+    y_pred = np.argmax(best_model.predict(X_test), axis=1)
+    y_true = y_test.idxmax(axis=1)
+    print(classification_report(y_true, y_pred))
+
+    plot_confusion(y_true, y_pred, classes=['Negative', 'Neutral', 'Positive'])
+
+if __name__ == "__main__":
+    main()
