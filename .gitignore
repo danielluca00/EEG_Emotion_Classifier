@@ -1,0 +1,75 @@
+# =============================
+# === Python and environments
+# =============================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+*.tmp
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+pip-wheel-metadata/
+
+# =============================
+# === Jupyter / Colab
+# =============================
+.ipynb_checkpoints/
+*.ipynb
+
+# =============================
+# === IDE / OS files
+# =============================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# =============================
+# === Data & intermediate files
+# =============================
+data/
+*.csv
+*.xlsx
+*.xml
+*.json
+
+# =============================
+# === Model checkpoints & results
+# =============================
+checkpoints/
+results/
+*.h5
+*.pth
+*.pt
+*.onnx
+
+# =============================
+# === Logs & outputs
+# =============================
+*.out
+*.txt
+*.log
+training_log.txt
+
+# =============================
+# === Archives
+# =============================
+*.zip
+*.tar
+*.tar.gz
+
+# =============================
+# === Misc
+# =============================
+*.bak
+*.swp
