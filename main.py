@@ -1,3 +1,5 @@
+import os
+import datetime
 import numpy as np
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, LearningRateScheduler
 from tensorflow.keras.optimizers import Adam
@@ -7,7 +9,13 @@ from utils.plot_utils import plot_training_history, plot_confusion
 from models.dnn_model import create_dnn
 from sklearn.metrics import classification_report
 
+
 def main():
+    # === Create timestamped results folder ===
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    results_dir = os.path.join("results", f"run_{timestamp}")
+    os.makedirs(results_dir, exist_ok=True)
+
     # === Load Data ===
     X_train, X_val, X_test, y_train, y_val, y_test = load_data("data/emotions.csv")
 
@@ -21,7 +29,8 @@ def main():
 
     # === Callbacks ===
     es = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
-    mc = ModelCheckpoint('checkpoints/best_dnn_model.h5', monitor='val_accuracy', save_best_only=True)
+    model_path = os.path.join(results_dir, "best_dnn_model.h5")
+    mc = ModelCheckpoint(model_path, monitor='val_accuracy', save_best_only=True)
     lr_schedule = LearningRateScheduler(lambda epoch: 0.001 * np.exp(-epoch / 10.))
 
     # === Train ===
@@ -34,18 +43,35 @@ def main():
         verbose=1
     )
 
-    plot_training_history(history)
+    # === Save training plots ===
+    plot_training_history(history, save_path=os.path.join(results_dir, "training_history.png"))
 
     # === Evaluate ===
-    best_model = load_model('checkpoints/best_dnn_model.h5')
+    best_model = load_model(model_path)
     acc = best_model.evaluate(X_test, y_test, verbose=0)[1]
     print(f"Test Accuracy: {acc * 100:.2f}%")
 
     y_pred = np.argmax(best_model.predict(X_test), axis=1)
     y_true = y_test.idxmax(axis=1)
-    print(classification_report(y_true, y_pred))
+    report = classification_report(y_true, y_pred, target_names=['Negative', 'Neutral', 'Positive'])
 
-    plot_confusion(y_true, y_pred, classes=['Negative', 'Neutral', 'Positive'])
+    print(report)
+
+    # === Save classification report ===
+    with open(os.path.join(results_dir, "classification_report.txt"), "w") as f:
+        f.write(f"Test Accuracy: {acc * 100:.2f}%\n\n")
+        f.write(report)
+
+    # === Save confusion matrix plot ===
+    plot_confusion(
+        y_true,
+        y_pred,
+        classes=['Negative', 'Neutral', 'Positive'],
+        save_path=os.path.join(results_dir, "confusion_matrix.png")
+    )
+
+    print(f"\n✅ All results saved in: {results_dir}")
+
 
 if __name__ == "__main__":
     main()
