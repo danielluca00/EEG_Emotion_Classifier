@@ -5,13 +5,14 @@ from sklearn.model_selection import train_test_split
 
 def load_data(path):
     df = pd.read_csv(path)
-    
+
     # Encoding etichette
     le = LabelEncoder()
     df['label'] = le.fit_transform(df['label'])
 
     X = df.drop('label', axis=1)
     y = df['label']
+    feature_names = X.columns.tolist()
 
     # Standardizzazione
     X = StandardScaler().fit_transform(X)
@@ -24,4 +25,4 @@ def load_data(path):
     y_val = pd.get_dummies(y_val)
     y_test = pd.get_dummies(y_test)
 
-    return X_train, X_val, X_test, y_train, y_val, y_test
+    return X_train, X_val, X_test, y_train, y_val, y_test, feature_names
