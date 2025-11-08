@@ -1,14 +1,20 @@
+import os
+import json
+import datetime
 import numpy as np
-from sklearn.model_selection import cross_val_score
-from sklearn.linear_model import LogisticRegression
 import random
 from tqdm import tqdm
+from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import LogisticRegression
+
 
 def initialize_population(num_features, population_size):
+    """Inizializza la popolazione come lista di vettori binari (0/1)."""
     return [np.random.randint(0, 2, num_features) for _ in range(population_size)]
 
+
 def fitness_function(individual, X, y):
-    # Se l’individuo non seleziona feature, fitness = 0
+    """Calcola la fitness di un individuo in base all’accuratezza media di cross-validation."""
     if np.sum(individual) == 0:
         return 0
     X_subset = X[:, individual == 1]
@@ -16,24 +22,32 @@ def fitness_function(individual, X, y):
     score = cross_val_score(model, X_subset, y, cv=3, scoring='accuracy').mean()
     return score
 
+
 def selection(population, fitnesses):
+    """Selezione proporzionale alla fitness."""
     probs = fitnesses / np.sum(fitnesses)
     indices = np.random.choice(len(population), size=len(population), p=probs)
     return [population[i] for i in indices]
 
+
 def crossover(parent1, parent2):
+    """Crossover a punto singolo."""
     point = np.random.randint(1, len(parent1) - 1)
     child1 = np.concatenate([parent1[:point], parent2[point:]])
     child2 = np.concatenate([parent2[:point], parent1[point:]])
     return child1, child2
 
+
 def mutation(individual, mutation_rate=0.02):
+    """Applica mutazione casuale a un individuo."""
     for i in range(len(individual)):
         if random.random() < mutation_rate:
             individual[i] = 1 - individual[i]
     return individual
 
-def ga_feature_selection(X, y, n_generations=10, population_size=15):
+
+def ga_feature_selection(X, y, n_generations=5, population_size=5, save_best=True):
+    """Esegue l’algoritmo genetico per la selezione delle feature."""
     num_features = X.shape[1]
     population = initialize_population(num_features, population_size)
 
@@ -57,7 +71,29 @@ def ga_feature_selection(X, y, n_generations=10, population_size=15):
                 new_population.extend([mutation(child1), mutation(child2)])
         population = new_population
 
+    # Migliore individuo
     best_individual = population[np.argmax(fitnesses)]
     selected_indices = np.where(best_individual == 1)[0]
+
     print(f"\n✅ Best individual selected {len(selected_indices)} features.")
+
+    # Salva il set di feature selezionate
+    if save_best:
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        save_dir = "selected_features"
+        os.makedirs(save_dir, exist_ok=True)
+        save_path = os.path.join(save_dir, f"features_{timestamp}.json")
+
+        with open(save_path, "w") as f:
+            json.dump(selected_indices.tolist(), f, indent=4)
+        print(f"💾 Saved selected features to: {save_path}")
+
     return selected_indices
+
+
+def load_selected_features(filepath):
+    """Carica un set di feature salvate in formato JSON."""
+    with open(filepath, "r") as f:
+        indices = np.array(json.load(f))
+    print(f"📂 Loaded {len(indices)} selected features from {filepath}")
+    return indices
