@@ -78,18 +78,33 @@ def run_inference():
     pred_classes = np.argmax(pred_probs, axis=1)
     pred_labels = [emotion_map[c] for c in pred_classes]
 
+    # Etichetta predetta
     df["Predicted_Emotion"] = pred_labels
+
+    # Confidence della classe più probabile
     df["Confidence"] = np.max(pred_probs, axis=1)
 
+    # === Nuovo: probabilità per OGNI classe ===
+    for class_idx, class_name in emotion_map.items():
+        df[f"Prob_{class_name}"] = pred_probs[:, class_idx]
+
+    # === Salva risultati ===
     os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
     df.to_csv(OUTPUT_PATH, index=False)
 
     print(f"\n✅ Classificazione completata! Risultati salvati in:\n   {OUTPUT_PATH}\n")
+
     print("📊 Distribuzione emozioni predette:")
     print(df["Predicted_Emotion"].value_counts())
 
-    print("\nEsempio risultati:")
-    print(df[["Predicted_Emotion", "Confidence"]].head())
+    print("\nEsempio risultati (prime 5 righe):")
+    print(df[[
+        "Predicted_Emotion",
+        "Confidence",
+        "Prob_Negative",
+        "Prob_Neutral",
+        "Prob_Positive"
+    ]].head())
 
 
 if __name__ == "__main__":
