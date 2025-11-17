@@ -5,3 +5,9 @@ matplotlib
 scikit-learn
 seaborn
 tqdm
+
+# Stable Diffusion dependencies
+diffusers
+transformers
+accelerate
+safetensors
