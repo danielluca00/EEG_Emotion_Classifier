@@ -12,6 +12,23 @@ from utils.pso_tuning import pso_tune_dnn, load_pso_params
 from models.dnn_model import create_dnn
 from sklearn.metrics import classification_report
 
+# ==========================
+#   TEE CLASS FOR LOGGING
+# ==========================
+class Tee(object):
+    """Duplicates stdout/stderr to terminal + log file."""
+    def __init__(self, log_file):
+        self.log_file = log_file
+        self.terminal = sys.__stdout__
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log_file.write(message)
+
+    def flush(self):
+        self.terminal.flush()
+        self.log_file.flush()
+
 
 def main():
     # === Create timestamped results folder ===
@@ -19,9 +36,11 @@ def main():
     results_dir = os.path.join("results", f"run_{timestamp}")
     os.makedirs(results_dir, exist_ok=True)
 
-    # === Redirect stdout and stderr to a log file ===
+    # === Setup Tee logging ===
     log_path = os.path.join(results_dir, "training_log.txt")
-    sys.stdout = open(log_path, "w")
+    log_file = open(log_path, "w")
+
+    sys.stdout = Tee(log_file)
     sys.stderr = sys.stdout
 
     print(f"=== Training session started: {timestamp} ===\n")
@@ -31,7 +50,8 @@ def main():
     X_train, X_val, X_test, y_train, y_val, y_test, feature_names = load_data("data/emotions.csv")
 
     # === Feature Selection with GA ===
-    apply_ga = True
+    choice_ga = input("\n🧬 Vuoi eseguire la Feature Selection con GA? (y/n): ").strip().lower()
+    apply_ga = (choice_ga == "y")
     selected_indices = None
 
     if apply_ga:
@@ -47,8 +67,8 @@ def main():
             for i, fname in enumerate(existing_files, start=1):
                 print(f"  {i}. {fname}")
 
-            choice = input("\nReuse an existing feature set? (y/n): ").strip().lower()
-            if choice == "y":
+            reuse = input("\nReuse an existing feature set? (y/n): ").strip().lower()
+            if reuse == "y":
                 index = input("➡️  Enter set number (default = 1): ").strip()
                 try:
                     index = int(index) - 1 if index else 0
@@ -112,7 +132,11 @@ def main():
     if best_params:
         lr = best_params["lr"]
         batch_size = int(best_params["batch_size"])
-        dropout_rates = [best_params["dropout1"], best_params["dropout2"], best_params["dropout3"]]
+        dropout_rates = [
+            best_params["dropout1"],
+            best_params["dropout2"],
+            best_params["dropout3"]
+        ]
     else:
         lr = 0.001
         batch_size = 32
@@ -151,7 +175,12 @@ def main():
 
     y_pred = np.argmax(best_model.predict(X_test), axis=1)
     y_true = y_test.idxmax(axis=1)
-    report = classification_report(y_true, y_pred, target_names=['Negative', 'Neutral', 'Positive'])
+
+    report = classification_report(
+        y_true,
+        y_pred,
+        target_names=['Negative', 'Neutral', 'Positive']
+    )
 
     print("\nClassification Report:\n")
     print(report)
@@ -161,8 +190,7 @@ def main():
         f.write(report)
 
     plot_confusion(
-        y_true,
-        y_pred,
+        y_true, y_pred,
         classes=['Negative', 'Neutral', 'Positive'],
         save_path=os.path.join(results_dir, "confusion_matrix.png")
     )
@@ -170,9 +198,11 @@ def main():
     print(f"\n✅ All results saved in: {results_dir}")
     print(f"=== Training session ended at {datetime.datetime.now().strftime('%H:%M:%S')} ===")
 
-    sys.stdout.close()
+    # === Restore original stdout/stderr ===
+    log_file.close()
     sys.stdout = sys.__stdout__
     sys.stderr = sys.__stderr__
+
     print(f"\n📝 Full terminal output saved in: {log_path}")
 
 
