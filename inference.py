@@ -5,6 +5,7 @@ import pandas as pd
 from tensorflow.keras.models import load_model
 from sklearn.preprocessing import StandardScaler
 from utils.feature_selection import load_selected_features
+import joblib
 
 # === Percorsi predefiniti ===
 DEFAULT_MODEL_PATH = "results/best_dnn_model.h5"
@@ -15,17 +16,20 @@ OUTPUT_PATH = "results/inference_output.csv"
 emotion_map = {0: "Negative", 1: "Neutral", 2: "Positive"}
 
 
-def preprocess_data(df, selected_indices=None):
+def preprocess_data(df, selected_indices=None, scaler_path="models/scaler.pkl"):
     """
-    Prepara i dati EEG per l'inference:
-    - Rimuove colonne non numeriche
-    - Applica lo StandardScaler
-    - Seleziona solo le feature ottimizzate, se specificate
+    Prepara i dati EEG per l'inference usando lo SCALER del training
     """
     X = df.select_dtypes(include=[np.number])
 
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+    # ⬅️ CARICA LO SCALER USATO DURANTE IL TRAINING
+    if not os.path.exists(scaler_path):
+        raise FileNotFoundError(f"Lo scaler del training non esiste: {scaler_path}")
+
+    scaler = joblib.load(scaler_path)
+
+    # ⬅️ APPLICA LO SCALER DEL TRAINING
+    X_scaled = scaler.transform(X)
 
     if selected_indices is not None:
         X_scaled = X_scaled[:, selected_indices]
