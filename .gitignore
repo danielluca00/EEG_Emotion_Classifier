@@ -52,6 +52,7 @@ results/
 *.pth
 *.pt
 *.onnx
+*.pkl
 
 # =============================
 # === Logs & outputs
