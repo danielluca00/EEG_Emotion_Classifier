@@ -11,14 +11,14 @@ from tensorflow.keras import backend as K
 
 def pso_tune_dnn(X_train, y_train, X_val, y_val, n_particles=8, n_iterations=10):
     """
-    Ottimizzazione degli iperparametri del modello DNN tramite PSO (Particle Swarm Optimization).
-    Ottimizza:
+    Optimizing DNN model hyperparameters using Particle Swarm Optimization (PSO).
+    Optimizes:
         - learning rate
         - dropout1, dropout2, dropout3
         - batch size
     """
 
-    # === Definizione dei limiti di ricerca per ciascun parametro ===
+    # === Search bounds for each parameter ===
     param_bounds = {
         "lr": (1e-5, 1e-2),
         "dropout1": (0.1, 0.6),
@@ -27,7 +27,7 @@ def pso_tune_dnn(X_train, y_train, X_val, y_val, n_particles=8, n_iterations=10)
         "batch_size": (16, 128),
     }
 
-    # === Inizializzazione delle particelle ===
+    # === Initialization of particles ===
     particles = []
     velocities = []
     for _ in range(n_particles):
@@ -43,10 +43,11 @@ def pso_tune_dnn(X_train, y_train, X_val, y_val, n_particles=8, n_iterations=10)
     global_best_score = -np.inf
 
     # === Parametri PSO ===
-    w = 0.6   # inerzia
-    c1 = 1.5  # componente cognitiva
-    c2 = 1.5  # componente sociale
-
+    # === PSO parameters ===
+    w = 0.6   # inertial weight
+    c1 = 1.5  # cognitive component
+    c2 = 1.5  # social component
+    
     print(f"\n=== 🔧 PSO Hyperparameter Optimization Started ===")
     print(f"Particles: {n_particles}, Iterations: {n_iterations}\n")
 
@@ -54,7 +55,7 @@ def pso_tune_dnn(X_train, y_train, X_val, y_val, n_particles=8, n_iterations=10)
         print(f"\nIteration {iteration + 1}/{n_iterations}")
 
         for i, particle in enumerate(particles):
-            # === Costruisci e valuta modello ===
+            # === Build and evaluate model ===
             K.clear_session()
 
             dropout_rates = [particle["dropout1"], particle["dropout2"], particle["dropout3"]]
@@ -78,7 +79,7 @@ def pso_tune_dnn(X_train, y_train, X_val, y_val, n_particles=8, n_iterations=10)
             val_acc = max(history.history["val_accuracy"])
             print(f"  Particle {i+1}: val_acc={val_acc:.4f}")
 
-            # === Aggiornamento del best personale e globale ===
+            # === Update personal and global bests ===
             if val_acc > personal_best_scores[i]:
                 personal_best[i] = particle.copy()
                 personal_best_scores[i] = val_acc
@@ -87,7 +88,7 @@ def pso_tune_dnn(X_train, y_train, X_val, y_val, n_particles=8, n_iterations=10)
                 global_best = particle.copy()
                 global_best_score = val_acc
 
-        # === Aggiornamento velocità e posizione ===
+        # === Update velocities and positions ===
         for i, particle in enumerate(particles):
             for param, (low, high) in param_bounds.items():
                 r1, r2 = np.random.rand(), np.random.rand()
@@ -105,7 +106,7 @@ def pso_tune_dnn(X_train, y_train, X_val, y_val, n_particles=8, n_iterations=10)
     for k, v in global_best.items():
         print(f"  {k}: {v}")
 
-    # === Salvataggio parametri migliori ===
+    # === Save best parameters ===
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     save_dir = "optimized_hyperparams"
     os.makedirs(save_dir, exist_ok=True)
@@ -120,7 +121,7 @@ def pso_tune_dnn(X_train, y_train, X_val, y_val, n_particles=8, n_iterations=10)
 
 
 def load_pso_params(path):
-    """Carica un set di iperparametri PSO da file JSON."""
+    """Load a set of PSO hyperparameters from a JSON file."""
     with open(path, "r") as f:
         params = json.load(f)
     return params

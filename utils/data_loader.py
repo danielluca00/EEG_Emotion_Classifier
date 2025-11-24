@@ -7,7 +7,7 @@ import joblib
 def load_data(path):
     df = pd.read_csv(path)
 
-    # Encoding etichette
+    # Label encoding
     le = LabelEncoder()
     df['label'] = le.fit_transform(df['label'])
 
@@ -15,11 +15,11 @@ def load_data(path):
     y = df['label']
     feature_names = X.columns.tolist()
 
-    # Standardizzazione
+    # Standardization
     scaler = StandardScaler()
     X = scaler.fit_transform(X)
 
-    # Salvataggio scaler
+    # Scaler saving
     joblib.dump(scaler, "models/scaler.pkl")
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=111)

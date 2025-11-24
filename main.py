@@ -50,7 +50,7 @@ def main():
     X_train, X_val, X_test, y_train, y_val, y_test, feature_names = load_data("data/emotions.csv")
 
     # === Feature Selection with GA ===
-    choice_ga = input("\n🧬 Vuoi eseguire la Feature Selection con GA? (y/n): ").strip().lower()
+    choice_ga = input("\n🧬 Run GA for Feature Selection? (y/n): ").strip().lower()
     apply_ga = (choice_ga == "y")
     selected_indices = None
 
