@@ -1,51 +1,112 @@
-# 🧠 EEG Emotion Classifier
+# 🧠 From Brain Signals to Visual Art  
+## EEG Emotion-to-Image Framework using Evolutionary-Optimized DNNs and Diffusion Models
 
-This project implements a **Deep Neural Network (DNN)** model to classify **human emotions** based on **EEG (Electroencephalography) signals**.  
-The dataset used contains EEG features (e.g., FFT coefficients) already preprocessed and extracted from raw EEG signals.  
-The goal is to recognize emotional states (e.g., *positive*, *neutral*, *negative*) and later transform them into artistic representations such as images or audio.
-
----
-
-## 🚀 Project Overview
-
-- **Input:** EEG features extracted from multiple electrodes (e.g., FFT values)
-- **Output:** Emotion class (Positive / Neutral / Negative)
-- **Model Type:** Deep Neural Network (feed-forward)
-- **Frameworks:** TensorFlow / Keras / Scikit-learn
-- **Use case:** Emotion recognition and artistic representation of EEG signals
+This repository implements an **end-to-end EEG-based emotion recognition and visualization framework** that classifies emotional states from brain signals and transforms them into artistic images using **deep learning**, **evolutionary optimization**, and **diffusion models**.
 
 ---
 
-## 🧩 Model Architecture
+## 🔍 Overview
 
-The DNN model consists of multiple fully-connected layers with **ReLU activation**, **Batch Normalization**, and **Dropout** for regularization.
+EEG signals are highly non-linear, non-stationary, noisy, and subject-dependent, making emotion recognition a challenging task.  
+This project builds upon a **pre-extracted EEG feature dataset** and introduces an optimized classification and visualization pipeline by combining:
 
-| Layer Type | Units | Activation | Dropout |
-|-------------|--------|-------------|----------|
-| Dense + BN  | 2548  | ReLU | 0.25 |
-| Dense + BN  | 3822  | ReLU | 0.27 |
-| Dense + BN  | 5096  | ReLU | 0.30 |
-| Dense + BN  | 3822  | ReLU | 0.27 |
-| Dense + BN  | 2548  | ReLU | 0.25 |
-| Output      | 3     | Softmax | — |
+- **Evolutionary feature selection (GA)**
+- **Hyperparameter optimization (PSO)**
+- **Deep Neural Networks (DNNs)**
+- **Emotion-to-image generation via Stable Diffusion**
+
+The final system bridges **affective computing** and **generative AI**, enabling intuitive visualization of EEG-derived emotions.
 
 ---
 
-## ⚙️ Installation
+## 📊 Dataset
 
-### 1. Clone the Repository
+- **Source:** Kaggle  
+  https://www.kaggle.com/datasets/birdy654/eeg-brainwave-dataset-feeling-emotions
 
-You can clone the repository using Git. Open your terminal and run the following command:
+- **Description:**  
+  The dataset contains **pre-extracted EEG features** computed from raw EEG recordings acquired with a Muse headband (TP9, AF7, AF8, TP10).
 
+- **Note:**  
+  Raw EEG acquisition, preprocessing, windowing, and feature extraction were performed by the dataset authors.  
+  This project focuses on **feature selection, classification, optimization, inference, and visualization**.
+
+---
+
+## 🎯 Emotion Classes
+
+The classifier predicts three valence-based emotional states:
+
+- **Positive**
+- **Neutral**
+- **Negative**
+
+Predicted class probabilities are also used to generate **blended emotional images**.
+
+---
+
+## 🧩 Features and Optimization
+
+- **Initial feature space:** 2549 handcrafted EEG features  
+- **Feature selection:** Genetic Algorithm (GA)  
+- **Classifier:** Deep Neural Network (DNN)  
+- **Hyperparameter optimization:** Particle Swarm Optimization (PSO)  
+
+The combined GA + PSO approach improves both **classification accuracy** and **computational efficiency**.
+
+---
+
+## 🎨 Emotion-to-Image Generation
+
+Emotion predictions are mapped to emotion-conditioned text prompts and passed to **Stable Diffusion** to generate images representing:
+
+- Dominant emotional states
+- Mixed emotional distributions via proportional blending
+
+This provides an expressive alternative to traditional numerical EEG analysis.
+
+---
+
+## 📊 Results (Summary)
+
+| Configuration | Accuracy |
+|--------------|----------|
+| Baseline     | 91.2%    |
+| GA Only      | 95.6%    |
+| PSO Only     | 96.8%    |
+| **GA + PSO** | **98.43%** |
+
+---
+
+## 🛠️ Technologies
+
+- Python  
+- NumPy / SciPy  
+- Scikit-learn  
+- TensorFlow / Keras  
+- Genetic Algorithms (GA)  
+- Particle Swarm Optimization (PSO)  
+- Stable Diffusion  
+
+---
+
+## 🚀 How to Run
+
+### 1️⃣ Clone the repository and install dependencies
 ```bash
 git clone https://github.com/danielluca00/EEG_Emotion_Classifier.git
+cd EEG_Emotion_Classifier
+pip install -r requirements.txt
 ```
-
-### 2. Run the Project
-
-Run the main script:
-
+### 2️⃣ Train and evaluate the model
 ```bash
 python main.py
 ```
-
+### 3️⃣ Run inference on custom EEG feature data
+```bash
+python inference.py
+```
+### 4️⃣ Generate emotion-driven images from inference results
+```bash
+python emotion_to_image.py
+```
